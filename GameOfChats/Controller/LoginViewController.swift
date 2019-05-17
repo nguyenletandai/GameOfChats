@@ -43,42 +43,16 @@ class LoginViewController: UIViewController {
         guard let email = emailTextField.text,  let password = passwordTextField.text else {print("email hoac pass sai")
             return
         }
-        Auth.auth().signIn(withEmail: email, password: password) { (user, error) in
-            if error != nil {
-                print(error)
+        Auth.auth().signIn(withEmail: email, password: password) { (result, loginError) in
+            if loginError != nil {
+                print(loginError)
+                return
             }
             self.dismiss(animated: true, completion: nil)
         }
     }
     
-    @objc func handleRegister() {
-        guard let email = emailTextField.text,  let password = passwordTextField.text, let name = nameTextField.text else {print("email hoac pass sai")
-            return
-        }
-        
-        Auth.auth().createUser(withEmail: email, password: password) { (user, error) in
-            if error != nil {
-                print(error!)
-                return
-            }
-            
-            guard let uid = user?.user.uid else { print("uid khong co")
-                return }
-            
-            let ref = Database.database().reference(fromURL: "https://gameofchats-1535a.firebaseio.com/")
-            let usersReference = ref.child("users").child(uid)
-            let values = ["name": name,"email": email]
-            usersReference.updateChildValues(values, withCompletionBlock: { (err, ref) in
-                if err != nil {
-                    print(err!)
-                    return
-                }
-                
-                self.dismiss(animated: true, completion: nil)
-                print("luu du lieu vao database thanh cong")
-            })
-        }
-    }
+    
     
     let nameTextField: UITextField = {
        let textField = UITextField()
@@ -115,13 +89,22 @@ class LoginViewController: UIViewController {
         return textField
     }()
     
-    let profileImageView: UIImageView = {
+    lazy var profileImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "gameofthrones_splash")
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFill
+        
+        imageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSelectProfileImageView)))
+        imageView.isUserInteractionEnabled = true
+        
+        
         return imageView
     }()
+    
+    
+    
+    
     
     lazy var loginRegisterSegmentedControl: UISegmentedControl = {
         let sc = UISegmentedControl(items: ["Login","Register"])
